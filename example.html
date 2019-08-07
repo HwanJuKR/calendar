@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="jquery-1.12.3.min.js"></script>
+    <title>달력</title>
+    <style type="text/css">
+        *{box-sizing:border-box}
+        html{height:100%}
+        body{margin:0;padding:20px;height:100%}
+        header{padding:0px 30px 20px;float:left;width:100%}
+        header span{border:1px solid #d9d9d9;padding:6px 12px;float:left;font-weight:bold;cursor:pointer}
+        header span + span{border-left:none}
+        header span:last-child{border-left:1px solid #d9d9d9}
+        .inputData{float:right}
+        .inputData input{height:24px;position:relative;top:-2px;margin-left:5px}
+
+        .calendar-wrap{clear:both;height:calc(100% - 60px)}
+        #calendar{width:100%;height:100%;border-collapse:collapse;table-layout:fixed}
+        #calendar thead th{background:#f3f3f3;font-weight:normal;border:1px solid #d9d9d9;padding:5px 0}
+        #calendar thead th:first-child{color:#ff000a}
+        #calendar tbody td{border:1px solid #d9d9d9;position:relative;cursor:pointer;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:10px;}
+        #calendar tbody td .cal-date{position:absolute;top:5px;left:5px;color:#999;font-size:14px}
+        #calendar tbody td:nth-child(7n+1) .cal-date{color:#ff000a}        
+    </style>
+    <script type="text/javascript">
+        var today = new Date();
+        var date = new Date();
+        var agent = navigator.userAgent.toLowerCase();
+
+        function buildCalendar(){
+            var doMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            var lastDate = new Date(today.getFullYear(), today.getMonth()+1, 0);
+            var tbCalendar = document.getElementById("calendar");
+            var tbCalendarYM = document.getElementById("tbCalendarYM");
+            var tbCalenderDay = document.getElementById("tbCalenderDay");
+            tbCalendarYM.innerHTML = today.getFullYear() + "년 " + (today.getMonth()+1) + "월";             
+ 
+            while(tbCalenderDay.rows.length > 0){
+                tbCalenderDay.deleteRow(tbCalenderDay.rows.length-1);
+            }
+             
+            var row = tbCalenderDay.insertRow();
+            var cnt = 0;
+            for(i=0; i<doMonth.getDay(); i++){
+                cell = row.insertCell();
+                cnt = cnt + 1;
+            }
+            for(i=1; i<=lastDate.getDate(); i++){ 
+                cell = row.insertCell();                
+                cell.setAttribute('data-index', today.getFullYear() + '/' + parseInt(today.getMonth()+1) + '/' + i);
+                var dataIndex = cell.getAttribute('data-index');
+                        
+                if((navigator.appName == 'Netscape' && agent.indexOf('trident') != -1) || (agent.indexOf("msie") != -1)){
+                    cell.innerHTML = '<span class="cal-date">' + i + '</span>';        
+                }else{
+                    if(localStorage.getItem(dataIndex)){
+                        cell.innerHTML = '<span class="cal-date">' + i + '</span>' + localStorage.getItem(dataIndex);
+                    }else{
+                        cell.innerHTML = '<span class="cal-date">' + i + '</span>';
+                    }   
+                }                  
+
+                cnt = cnt + 1;
+
+                if(cnt % 7 == 0 && i+1<=lastDate.getDate()){
+                    row = calendar.insertRow();
+                }
+                if(today.getFullYear() == date.getFullYear() && today.getMonth() == date.getMonth() && i == date.getDate()){
+                    cell.bgColor = "#f5fbfd";
+                }
+            }
+        }
+
+        function submitData(){
+            var dataIndex = sessionStorage.getItem('data-i');
+            var inputData = document.getElementById('calendarInput');
+            localStorage.setItem(dataIndex, inputData.value);     
+            location.reload();
+        }
+
+        function allClear(){
+            localStorage.clear();
+        }
+
+        $(function(){
+            $('#prev-calendar').on('click', function(){
+                today = new Date(today.getFullYear(), today.getMonth()-1, today.getDate());
+                buildCalendar();
+            })
+            $('#next-calendar').on('click', function(){
+                today = new Date(today.getFullYear(), today.getMonth()+1, today.getDate());
+                buildCalendar();
+            })
+            $('#today-calendar').on('click', function(){
+                today = new Date();
+                buildCalendar();                
+            })
+
+            $('#tbCalenderDay').on('click', 'td', function(){
+                $('#calendarInput').removeAttr('disabled');
+                var idx = this.getAttribute('data-index');
+                $('#calendarInput').val(localStorage.getItem(idx));
+                sessionStorage.setItem('data-i', idx);
+            })      
+            $('#submit-data').on('click', function(){
+                submitData();
+            })    
+            $('#clear-data').on('click', function(){
+                if(confirm('초기화 하시겠습니까?')){
+                    allClear();
+                    location.reload();
+                }                
+            })      
+            $("#calendarInput").keyup(function(e){
+                if(e.keyCode == 13){
+                    submitData();
+                }
+            })
+        })        
+    </script>
+</head>
+<body>
+    <header>        
+        <span id="tbCalendarYM"></span>        
+        <span id="prev-calendar">&lt;</span>
+        <span id="next-calendar">&gt;</span>
+        <span id="today-calendar">오늘</span>
+
+        <span class="inputData">
+            <label for="calendarInput">데이터 입력</label>
+            <input type="text" id="calendarInput" disabled>
+            <button type="button" id="submit-data">확인</button>
+            <button type="button" id="clear-data">초기화</button>
+        </span>
+    </header>
+    <div class="calendar-wrap">
+        <table id="calendar" summary="달력">
+            <caption></caption>
+            <colgroup>
+                <col style="width: 14%">
+                <col style="width: 14%">
+                <col style="width: 14%">
+                <col style="width: 14%">
+                <col style="width: 14%">
+                <col style="width: 14%">
+                <col style="width: 14%">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th scope="col">일</th>
+                    <th scope="col">월</th>
+                    <th scope="col">화</th>
+                    <th scope="col">수</th>
+                    <th scope="col">목</th>
+                    <th scope="col">금</th>
+                    <th scope="col">토</th>
+                </tr>
+            </thead>
+            <tbody id="tbCalenderDay">            
+            </tbody>
+        </table>
+    </div>   
+    <script language="javascript" type="text/javascript">
+        buildCalendar();
+    </script>
+</body>
+</html>
